@@ -13,7 +13,7 @@ client-files:
     jwt-issuer: client-files-api-local
     access-token-ttl: 8h
   cors:
-    allowed-origins: ${CLIENT_FILES_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173,https://preview-sandbox--6a54113a94e0356c72ca2c4c.base44.app,https://preview--txtopdressing-client-files.base44.app}
+    allowed-origins: ${CLIENT_FILES_ALLOWED_ORIGINS:http://localhost:5183,https://preview-sandbox--6a54113a94e0356c72ca2c4c.base44.app,https://preview--txtopdressing-client-files.base44.app}
     allowed-origin-patterns: ${CLIENT_FILES_ALLOWED_ORIGIN_PATTERNS:}
   security:
     allow-tenant-header: false
@@ -22,9 +22,9 @@ client-files:
 
 spring:
   datasource:
-    url: ${LOCALROOTS_DEV_DB_URL}
-    username: ${LOCALROOTS_DEV_DB_USER}
-    password: ${LOCALROOTS_DEV_DB_PASSWORD}
+    url: ${LOCALROOTS_DEV_DB_URL:jdbc:postgresql://localhost:5481/localroots_crm}
+    username: ${LOCALROOTS_DEV_DB_USER:localroots_crm}
+    password: ${LOCALROOTS_DEV_DB_PASSWORD:localroots_crm}
     driver-class-name: org.postgresql.Driver
   # Local migrations remain explicit. Apply the reviewed V1 SQL manually to AWS RDS.
   flyway:
@@ -38,7 +38,7 @@ spring:
         format_sql: false
 
 server:
-  port: 8080
+  port: 8083
 
 logging:
   file:
