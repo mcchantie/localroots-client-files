@@ -5,6 +5,7 @@ client-files:
     jwt-secret-base64: ${CLIENT_FILES_JWT_SECRET_BASE64}
     jwt-issuer: ${CLIENT_FILES_JWT_ISSUER:client-files-api}
     access-token-ttl: ${CLIENT_FILES_ACCESS_TOKEN_TTL:8h}
+    tenant-id: ${CLIENT_FILES_TENANT_ID}
   cors:
     allowed-origins: ${CLIENT_FILES_ALLOWED_ORIGINS:}
     allowed-origin-patterns: ${CLIENT_FILES_ALLOWED_ORIGIN_PATTERNS:}
