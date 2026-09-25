@@ -16,10 +16,4 @@ Client Files schema shares the LocalRoots contact/database model.
 
 The standard local defaults are:
 
-```text
-LOCALROOTS_DEV_DB_URL=jdbc:postgresql://localhost:5481/localroots_crm
-LOCALROOTS_DEV_DB_USER=localroots_crm
-LOCALROOTS_DEV_DB_PASSWORD=localroots_crm
-```
-
 Run the backend with the `local` Spring profile and the UI on port 5183.

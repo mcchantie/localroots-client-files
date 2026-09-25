@@ -1,31 +1,14 @@
-storage:
-  s3:
-    bucket: ${CLIENT_FILES_S3_BUCKET_DEV}
-    region: ${AWS_REGION:us-east-2}
-
 client-files:
   auth:
-    admin-username: ${CLIENT_FILES_ADMIN_USERNAME:admin}
-    admin-password: ${CLIENT_FILES_ADMIN_PASSWORD:local}
-    # Must be the UUID of an existing row in the shared Local Roots tenants table.
     tenant-id: ${CLIENT_FILES_TENANT_ID}
-    jwt-secret-base64: ${CLIENT_FILES_JWT_SECRET_BASE64}
-    jwt-issuer: client-files-api-local
-    access-token-ttl: 8h
   cors:
-    allowed-origins: ${CLIENT_FILES_ALLOWED_ORIGINS:http://localhost:5183,https://preview-sandbox--6a54113a94e0356c72ca2c4c.base44.app,https://preview--txtopdressing-client-files.base44.app}
-    allowed-origin-patterns: ${CLIENT_FILES_ALLOWED_ORIGIN_PATTERNS:}
+    allowed-origins: ${CLIENT_FILES_ALLOWED_ORIGINS:http://localhost:5183}
   security:
     allow-tenant-header: false
     allow-unverified-contact-ids: false
     allow-unverified-estimate-ids: false
 
 spring:
-  datasource:
-    url: ${LOCALROOTS_DEV_DB_URL:jdbc:postgresql://localhost:5481/localroots_crm}
-    username: ${LOCALROOTS_DEV_DB_USER:localroots_crm}
-    password: ${LOCALROOTS_DEV_DB_PASSWORD:localroots_crm}
-    driver-class-name: org.postgresql.Driver
   # Local migrations remain explicit. Apply the reviewed V1 SQL manually to AWS RDS.
   flyway:
     enabled: false
@@ -36,10 +19,3 @@ spring:
     properties:
       hibernate:
         format_sql: false
-
-server:
-  port: 8083
-
-logging:
-  file:
-    name: logs/localroots-clientfiles.log
