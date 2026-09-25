@@ -1,9 +1,36 @@
+client-files:
+  auth:
+    admin-username: ${CLIENT_FILES_ADMIN_USERNAME}
+    admin-password: ${CLIENT_FILES_ADMIN_PASSWORD}
+    jwt-secret-base64: ${CLIENT_FILES_JWT_SECRET_BASE64}
+    jwt-issuer: ${CLIENT_FILES_JWT_ISSUER:client-files-api}
+    access-token-ttl: ${CLIENT_FILES_ACCESS_TOKEN_TTL:8h}
+  cors:
+    allowed-origins: ${CLIENT_FILES_ALLOWED_ORIGINS:}
+    allowed-origin-patterns: ${CLIENT_FILES_ALLOWED_ORIGIN_PATTERNS:}
+  security:
+    allow-tenant-header: ${CLIENT_FILES_ALLOW_TENANT_HEADER:false}
+    allow-unverified-contact-ids: ${CLIENT_FILES_ALLOW_UNVERIFIED_CONTACT_IDS:false}
+    allow-unverified-estimate-ids: ${CLIENT_FILES_ALLOW_UNVERIFIED_ESTIMATE_IDS:false}
+
+logging:
+  file:
+    name: logs/localroots-clientfiles.log
+
+server:
+  port: ${PORT:8083}
+  shutdown: graceful
+
 spring:
   application:
     name: client-files
   config:
     import: optional:classpath:application-logging.yaml
   datasource:
+    url: ${CRM_DB_URL}
+    username: ${CRM_DB_USER}
+    password: ${CRM_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
     embedded-database-connection: none
   flyway:
     enabled: false
@@ -16,43 +43,24 @@ spring:
       hibernate:
         jdbc:
           time_zone: UTC
-
-server:
   servlet:
     encoding:
       charset: UTF-8
       enabled: true
       force: true
-  port: ${PORT:8080}
-  shutdown: graceful
-  error:
-    include-message: never
+  web:
+    error:
+      include-message: never
 
 storage:
   s3:
-    bucket: ${CLIENT_FILES_S3_BUCKET_PROD}
+    bucket: ${CLIENT_FILES_S3_BUCKET}
     region: ${AWS_REGION:us-east-2}
     upload-url-ttl: ${CLIENT_FILES_UPLOAD_URL_TTL:15m}
     download-url-ttl: ${CLIENT_FILES_DOWNLOAD_URL_TTL:5m}
     max-file-size: ${CLIENT_FILES_MAX_FILE_SIZE:500MB}
     max-text-file-size: ${CLIENT_FILES_MAX_TEXT_FILE_SIZE:5MB}
     allowed-content-types: image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf,text/plain,video/mp4,video/quicktime
-
-client-files:
-  auth:
-    admin-username: ${CLIENT_FILES_ADMIN_USERNAME}
-    admin-password: ${CLIENT_FILES_ADMIN_PASSWORD}
-    tenant-id: ${CLIENT_FILES_TENANT_ID}
-    jwt-secret-base64: ${CLIENT_FILES_JWT_SECRET_BASE64}
-    jwt-issuer: ${CLIENT_FILES_JWT_ISSUER:client-files-api}
-    access-token-ttl: ${CLIENT_FILES_ACCESS_TOKEN_TTL:8h}
-  cors:
-    allowed-origins: ${CLIENT_FILES_ALLOWED_ORIGINS:}
-    allowed-origin-patterns: ${CLIENT_FILES_ALLOWED_ORIGIN_PATTERNS:}
-  security:
-    allow-tenant-header: ${CLIENT_FILES_ALLOW_TENANT_HEADER:false}
-    allow-unverified-contact-ids: ${CLIENT_FILES_ALLOW_UNVERIFIED_CONTACT_IDS:false}
-    allow-unverified-estimate-ids: ${CLIENT_FILES_ALLOW_UNVERIFIED_ESTIMATE_IDS:false}
 
 management:
   endpoints:
