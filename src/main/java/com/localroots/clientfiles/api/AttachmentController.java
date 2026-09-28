@@ -145,6 +145,15 @@ public class AttachmentController {
         return attachmentService.softDelete(tenantResolver.requireTenantId(request), attachmentId);
     }
 
+    @DeleteMapping("/{attachmentId}/permanent")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void permanentlyDeleteAttachment(
+            HttpServletRequest request,
+            @PathVariable UUID attachmentId
+    ) {
+        attachmentService.permanentlyDelete(tenantResolver.requireTenantId(request), attachmentId);
+    }
+
     @PostMapping("/{attachmentId}/restore")
     public AttachmentResponse restoreAttachment(
             HttpServletRequest request,

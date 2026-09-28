@@ -19,5 +19,5 @@ jobs:
           cache: maven
       - name: Build backend
         run: ./mvnw --batch-mode --no-transfer-progress -DskipTests package
-      - name: Test attachment rename
-        run: ./mvnw --batch-mode --no-transfer-progress -Dtest=AttachmentRenameTest test
+      - name: Test attachment behavior
+        run: ./mvnw --batch-mode --no-transfer-progress -Dtest=AttachmentRenameTest,AttachmentControllerTest,AttachmentPermanentDeleteTest test

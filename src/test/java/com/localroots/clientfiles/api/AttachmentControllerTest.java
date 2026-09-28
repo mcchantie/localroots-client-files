@@ -7,6 +7,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.PatchMapping;
 
 import java.lang.reflect.Method;
@@ -20,6 +23,25 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class AttachmentControllerTest {
+
+    @Test
+    void permanentDeleteUsesSeparateEndpointAndTenant() throws Exception {
+        Method method = AttachmentController.class.getDeclaredMethod(
+                "permanentlyDeleteAttachment", HttpServletRequest.class, UUID.class);
+        assertArrayEquals(new String[]{"/{attachmentId}/permanent"}, method.getAnnotation(DeleteMapping.class).value());
+        assertSame(HttpStatus.NO_CONTENT, method.getAnnotation(ResponseStatus.class).value());
+
+        AttachmentService service = mock(AttachmentService.class);
+        RequestTenantResolver tenantResolver = mock(RequestTenantResolver.class);
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        UUID tenantId = UUID.randomUUID();
+        UUID attachmentId = UUID.randomUUID();
+        when(tenantResolver.requireTenantId(request)).thenReturn(tenantId);
+
+        new AttachmentController(service, tenantResolver).permanentlyDeleteAttachment(request, attachmentId);
+
+        verify(service).permanentlyDelete(tenantId, attachmentId);
+    }
 
     @Test
     void exposesPatchEndpointForAssignmentUpdates() throws Exception {

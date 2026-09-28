@@ -9,4 +9,6 @@ import java.util.UUID;
 public interface AttachmentRepository extends JpaRepository<AttachmentEntity, UUID>, JpaSpecificationExecutor<AttachmentEntity> {
 
     Optional<AttachmentEntity> findByIdAndTenantId(UUID id, UUID tenantId);
+
+    boolean existsByParentAttachmentId(UUID parentAttachmentId);
 }

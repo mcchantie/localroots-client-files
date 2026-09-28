@@ -255,6 +255,23 @@ DELETE /api/v1/attachments/{attachmentId}
 POST /api/v1/attachments/{attachmentId}/restore
 ```
 
+Deleting an active file moves it to Trash and returns the attachment with `deletedAt` set.
+List Trash with `GET /api/v1/attachments?deletedOnly=true`.
+
+### Permanently delete from Trash
+
+```http
+DELETE /api/v1/attachments/{attachmentId}/permanent
+Authorization: Bearer <token>
+```
+
+This returns `204 No Content` after deleting the stored S3 object and attachment record.
+There is no request body. Only a file already in Trash can be permanently deleted.
+An active file, or a file with linked child attachments, returns `409 Conflict`.
+Delete linked files first. A missing file or a file belonging to another tenant returns `404`.
+If S3 deletion fails, the attachment remains in Trash and the API returns an error;
+retry the same request. Do not call the regular DELETE endpoint again for this action.
+
 ## Error handling
 
 The API uses `application/problem+json`. Display `title`, `detail`, and field-level `errors` when present. Also log or display the `X-Correlation-Id` response header for troubleshooting.
