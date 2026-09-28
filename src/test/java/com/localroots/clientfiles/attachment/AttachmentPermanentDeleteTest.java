@@ -57,7 +57,7 @@ class AttachmentPermanentDeleteTest {
 
         assertEquals(HttpStatus.CONFLICT, error.getStatus());
         verify(storage, never()).deleteObject(anyString());
-        verify(repository, never()).delete(any());
+        verify(repository, never()).delete(any(AttachmentEntity.class));
     }
 
     @Test
@@ -80,7 +80,7 @@ class AttachmentPermanentDeleteTest {
 
         assertThrows(IllegalStateException.class, () -> service.permanentlyDelete(tenantId, attachmentId));
 
-        verify(repository, never()).delete(any());
+        verify(repository, never()).delete(any(AttachmentEntity.class));
     }
 
     @Test
