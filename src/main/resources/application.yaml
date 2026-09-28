@@ -1,7 +1,7 @@
 client-files:
   auth:
-    admin-username: ${CLIENT_FILES_ADMIN_USERNAME:admin}
-    admin-password: ${CLIENT_FILES_ADMIN_PASSWORD:local}
+    admin-username: ${CLIENT_FILES_ADMIN_USERNAME}
+    admin-password: ${CLIENT_FILES_ADMIN_PASSWORD}
     jwt-secret-base64: ${CLIENT_FILES_JWT_SECRET_BASE64}
     jwt-issuer: ${CLIENT_FILES_JWT_ISSUER:client-files-api}
     access-token-ttl: ${CLIENT_FILES_ACCESS_TOKEN_TTL:8h}
