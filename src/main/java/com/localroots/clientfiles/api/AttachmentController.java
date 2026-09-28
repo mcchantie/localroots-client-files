@@ -166,6 +166,16 @@ public class AttachmentController {
         );
     }
 
+    @PatchMapping("/{attachmentId}/display-name")
+    public AttachmentResponse renameAttachment(
+            HttpServletRequest request,
+            @PathVariable UUID attachmentId,
+            @Valid @RequestBody RenameAttachmentRequest body
+    ) {
+        return attachmentService.rename(
+                tenantResolver.requireTenantId(request), attachmentId, body.displayName());
+    }
+
     @PostMapping("/{attachmentId}/assign")
     public AttachmentResponse assignAttachment(
             HttpServletRequest request,

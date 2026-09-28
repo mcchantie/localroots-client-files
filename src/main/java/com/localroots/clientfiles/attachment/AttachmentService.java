@@ -422,6 +422,20 @@ public class AttachmentService {
     }
 
     @Transactional
+    public AttachmentResponse rename(UUID tenantId, UUID attachmentId, String displayName) {
+        AttachmentEntity entity = requireAttachment(tenantId, attachmentId);
+        requireNotDeleted(entity);
+        String name = displayName == null ? "" : displayName.trim();
+        if (name.isBlank() || name.length() > 255 || name.chars().anyMatch(c -> c == '\n' || c == '\r')) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Invalid display name",
+                    "Enter a display name of up to 255 characters on one line.");
+        }
+        entity.rename(name);
+        log.info("Attachment renamed attachmentId={}", attachmentId);
+        return AttachmentResponse.from(entity, objectMapper);
+    }
+
+    @Transactional
     public BatchUpdateAttachmentsResponse batchUpdate(
             UUID tenantId,
             BatchUpdateAttachmentsRequest request
@@ -616,8 +630,9 @@ public class AttachmentService {
 
     private void validateCategory(AttachmentCategory category, AttachmentFileKind fileKind) {
         boolean valid = switch (category) {
-            case LANDGLIDE, PROPERTY_PHOTOS -> fileKind == AttachmentFileKind.IMAGE;
+            case PROPERTY_PHOTOS -> fileKind == AttachmentFileKind.IMAGE;
             case VIDEOS -> fileKind == AttachmentFileKind.VIDEO;
+            case QUOTES -> fileKind == AttachmentFileKind.DOCUMENT || fileKind == AttachmentFileKind.IMAGE;
             case ESTIMATES, DOCUMENTS -> fileKind == AttachmentFileKind.DOCUMENT;
             case OTHER -> true;
         };

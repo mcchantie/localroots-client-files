@@ -46,3 +46,20 @@ objects into the Railway bucket before changing production storage variables.
 Local AWS S3 usage continues with `CLIENT_FILES_S3_BUCKET`, `AWS_REGION`, and
 the AWS SDK default credential chain when the Railway-specific variables are
 unset.
+
+## Attachment categories and display names
+
+`QUOTES` is accepted for document and image uploads (PDF, text, or screenshots).
+`LANDGLIDE` is removed; the migration recategorizes any old metadata rows as
+`PROPERTY_PHOTOS` without touching stored objects. The PostgreSQL category check must accept
+`QUOTES` before the new backend is deployed. Because Flyway is disabled, apply
+`src/main/resources/db/migration/V3__add_quotes_attachment_category.sql`
+manually to each database after reviewing it.
+
+The upload initializer already accepts an optional `displayName` in the request
+and returns it in attachment responses. To edit a name later, send
+`PATCH /api/v1/attachments/{attachmentId}/display-name` with
+`{"displayName":"Quote for Smith"}`. Names must be nonblank, at most 255
+characters, and on one line. Renaming changes the display name and generated
+download filename, not the original filename or S3 key. The frontend can
+suggest friendly names before upload, then send the chosen name to the API.

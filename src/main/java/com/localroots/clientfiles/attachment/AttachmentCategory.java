@@ -2,7 +2,7 @@ package com.localroots.clientfiles.attachment;
 
 public enum AttachmentCategory {
     ESTIMATES,
-    LANDGLIDE,
+    QUOTES,
     PROPERTY_PHOTOS,
     VIDEOS,
     DOCUMENTS,
