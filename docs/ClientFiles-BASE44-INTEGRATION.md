@@ -98,6 +98,19 @@ GET /api/v1/contacts/{contactId}
 PUT /api/v1/contacts/{contactId}
 ```
 
+### Service properties and lawn measurements
+
+```http
+GET /api/v1/contacts/{contactId}/properties
+```
+
+Returns the CRM-owned service properties for this contact, including `totalLawnAreaSqFt`,
+`sectionsComplete`, measurement source/status/date, and named lawn `sections` with
+`areaSqFt` and optional `grassType`. This endpoint uses the Client Files bearer token
+and enforces the same tenant boundary as contact reads. Editing is done in CRM.
+The CRM `V101__add_service_properties_and_lawn_sections.sql` migration must run
+before this endpoint is deployed.
+
 ## Attachments
 
 Categories:
