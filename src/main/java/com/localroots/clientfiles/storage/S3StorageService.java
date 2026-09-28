@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.unit.DataSize;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.ChecksumMode;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -317,6 +318,14 @@ public class S3StorageService {
             }
             throw exception;
         }
+    }
+
+    public void deleteObject(String key) {
+        log.info("Deleting S3 object bucket={} key={}", bucket, key);
+        s3Client.deleteObject(DeleteObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .build());
     }
 
     public void assertKeyBelongsToTenant(

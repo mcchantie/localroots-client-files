@@ -390,6 +390,27 @@ public class AttachmentService {
     }
 
     @Transactional
+    public void permanentlyDelete(UUID tenantId, UUID attachmentId) {
+        AttachmentEntity entity = requireAttachment(tenantId, attachmentId);
+        if (entity.getDeletedAt() == null) {
+            throw new ApiException(HttpStatus.CONFLICT, "Attachment is not in Trash",
+                    "Move the attachment to Trash before permanently deleting it.");
+        }
+        if (repository.existsByParentAttachmentId(attachmentId)) {
+            throw new ApiException(HttpStatus.CONFLICT, "Attachment has linked files",
+                    "Permanently delete its linked files first.");
+        }
+
+        assertStorageLocation(entity, tenantId);
+        // Delete S3 first. If S3 fails, the database row remains in Trash; if the
+        // database fails later, retrying is safe because S3 deletion is idempotent.
+        storageService.deleteObject(entity.getS3Key());
+        repository.delete(entity);
+        repository.flush();
+        log.info("Attachment permanently deleted attachmentId={}", attachmentId);
+    }
+
+    @Transactional
     public AttachmentResponse restore(UUID tenantId, UUID attachmentId) {
         log.info("Restoring attachment attachmentId={}", attachmentId);
         AttachmentEntity entity = requireAttachment(tenantId, attachmentId);
