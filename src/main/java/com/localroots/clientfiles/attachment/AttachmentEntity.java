@@ -194,6 +194,10 @@ public class AttachmentEntity {
         this.category = category;
     }
 
+    public void rename(String displayName) {
+        this.displayName = displayName;
+    }
+
     public UUID getId() { return id; }
     public UUID getTenantId() { return tenantId; }
     public UUID getContactId() { return contactId; }
