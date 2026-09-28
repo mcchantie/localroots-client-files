@@ -1,7 +1,7 @@
 client-files:
   auth:
-    admin-username: ${CLIENT_FILES_ADMIN_USERNAME}
-    admin-password: ${CLIENT_FILES_ADMIN_PASSWORD}
+    admin-username: ${CLIENT_FILES_ADMIN_USERNAME:admin}
+    admin-password: ${CLIENT_FILES_ADMIN_PASSWORD:local}
     jwt-secret-base64: ${CLIENT_FILES_JWT_SECRET_BASE64}
     jwt-issuer: ${CLIENT_FILES_JWT_ISSUER:client-files-api}
     access-token-ttl: ${CLIENT_FILES_ACCESS_TOKEN_TTL:8h}
@@ -56,7 +56,11 @@ spring:
 storage:
   s3:
     bucket: ${CLIENT_FILES_S3_BUCKET}
-    region: ${AWS_REGION:us-east-2}
+    region: ${CLIENT_FILES_S3_REGION}
+    endpoint: ${CLIENT_FILES_S3_ENDPOINT:}
+    access-key-id: ${CLIENT_FILES_S3_ACCESS_KEY_ID:}
+    secret-access-key: ${CLIENT_FILES_S3_SECRET_ACCESS_KEY:}
+    path-style-access: ${CLIENT_FILES_S3_PATH_STYLE_ACCESS:true}
     upload-url-ttl: ${CLIENT_FILES_UPLOAD_URL_TTL:15m}
     download-url-ttl: ${CLIENT_FILES_DOWNLOAD_URL_TTL:5m}
     max-file-size: ${CLIENT_FILES_MAX_FILE_SIZE:500MB}
