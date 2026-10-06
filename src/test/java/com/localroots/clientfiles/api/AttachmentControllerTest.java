@@ -25,6 +25,19 @@ import static org.mockito.Mockito.when;
 class AttachmentControllerTest {
 
     @Test
+    void quoteAssignmentUsesTheAuthenticatedTenant() {
+        var assignments=mock(com.localroots.clientfiles.attachment.EstimateQuoteAssignmentService.class);
+        var tenantResolver=mock(RequestTenantResolver.class);var request=mock(HttpServletRequest.class);
+        UUID tenant=UUID.randomUUID(),attachment=UUID.randomUUID(),contact=UUID.randomUUID();
+        var body=new com.localroots.clientfiles.attachment.EstimateQuoteAssignmentService.Request(UUID.randomUUID(),"Mary","Smith",null,null);
+        var result=new com.localroots.clientfiles.attachment.EstimateQuoteAssignmentService.Response(contact);
+        when(tenantResolver.requireTenantId(request)).thenReturn(tenant);when(assignments.assign(tenant,attachment,body)).thenReturn(result);
+        var controller=new AttachmentController(mock(AttachmentService.class),tenantResolver,assignments);
+        org.junit.jupiter.api.Assertions.assertEquals(result,controller.assignEstimateQuote(request,attachment,body));
+        verify(assignments).assign(tenant,attachment,body);
+    }
+
+    @Test
     void permanentDeleteUsesSeparateEndpointAndTenant() throws Exception {
         Method method = AttachmentController.class.getDeclaredMethod(
                 "permanentlyDeleteAttachment", HttpServletRequest.class, UUID.class);
@@ -38,7 +51,7 @@ class AttachmentControllerTest {
         UUID attachmentId = UUID.randomUUID();
         when(tenantResolver.requireTenantId(request)).thenReturn(tenantId);
 
-        new AttachmentController(service, tenantResolver).permanentlyDeleteAttachment(request, attachmentId);
+        new AttachmentController(service, tenantResolver, mock(com.localroots.clientfiles.attachment.EstimateQuoteAssignmentService.class)).permanentlyDeleteAttachment(request, attachmentId);
 
         verify(service).permanentlyDelete(tenantId, attachmentId);
     }
@@ -65,7 +78,7 @@ class AttachmentControllerTest {
         HttpServletRequest request = mock(HttpServletRequest.class);
         AttachmentResponse expected = mock(AttachmentResponse.class);
 
-        AttachmentController controller = new AttachmentController(attachmentService, tenantResolver);
+        AttachmentController controller = new AttachmentController(attachmentService, tenantResolver, mock(com.localroots.clientfiles.attachment.EstimateQuoteAssignmentService.class));
         UUID tenantId = UUID.randomUUID();
         UUID attachmentId = UUID.randomUUID();
         UUID contactId = UUID.randomUUID();
@@ -90,7 +103,7 @@ class AttachmentControllerTest {
         HttpServletRequest request = mock(HttpServletRequest.class);
         AttachmentResponse expected = mock(AttachmentResponse.class);
 
-        AttachmentController controller = new AttachmentController(attachmentService, tenantResolver);
+        AttachmentController controller = new AttachmentController(attachmentService, tenantResolver, mock(com.localroots.clientfiles.attachment.EstimateQuoteAssignmentService.class));
         UUID tenantId = UUID.randomUUID();
         UUID attachmentId = UUID.randomUUID();
 
@@ -121,7 +134,7 @@ class AttachmentControllerTest {
                 true
         );
 
-        AttachmentController controller = new AttachmentController(attachmentService, tenantResolver);
+        AttachmentController controller = new AttachmentController(attachmentService, tenantResolver, mock(com.localroots.clientfiles.attachment.EstimateQuoteAssignmentService.class));
         UUID tenantId = UUID.randomUUID();
         when(tenantResolver.requireTenantId(request)).thenReturn(tenantId);
         when(attachmentService.list(
@@ -179,7 +192,7 @@ class AttachmentControllerTest {
         AttachmentService attachmentService = mock(AttachmentService.class);
         RequestTenantResolver tenantResolver = mock(RequestTenantResolver.class);
         HttpServletRequest request = mock(HttpServletRequest.class);
-        AttachmentController controller = new AttachmentController(attachmentService, tenantResolver);
+        AttachmentController controller = new AttachmentController(attachmentService, tenantResolver, mock(com.localroots.clientfiles.attachment.EstimateQuoteAssignmentService.class));
         UUID tenantId = UUID.randomUUID();
         UUID attachmentId = UUID.randomUUID();
         byte[] expected = "• Estimate — ~5,420 sq ft".getBytes(java.nio.charset.StandardCharsets.UTF_8);
