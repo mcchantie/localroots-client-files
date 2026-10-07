@@ -80,6 +80,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // This single internal operation authenticates the service key in its controller.
+                        .requestMatchers(HttpMethod.POST, "/api/internal/estimator/attachments/*/quote-request").permitAll()
                         .requestMatchers(
                                 "/api/v1/auth/login",
                                 "/actuator/health",

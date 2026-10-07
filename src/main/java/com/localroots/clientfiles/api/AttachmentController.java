@@ -36,10 +36,19 @@ public class AttachmentController {
 
     private final AttachmentService attachmentService;
     private final RequestTenantResolver tenantResolver;
+    private final com.localroots.clientfiles.attachment.EstimateQuoteAssignmentService estimateQuotes;
 
-    public AttachmentController(AttachmentService attachmentService, RequestTenantResolver tenantResolver) {
+    public AttachmentController(AttachmentService attachmentService, RequestTenantResolver tenantResolver, com.localroots.clientfiles.attachment.EstimateQuoteAssignmentService estimateQuotes) {
         this.attachmentService = attachmentService;
         this.tenantResolver = tenantResolver;
+        this.estimateQuotes = estimateQuotes;
+    }
+
+    @PostMapping("/{attachmentId}/estimator-quote-request")
+    public com.localroots.clientfiles.attachment.EstimateQuoteAssignmentService.Response assignEstimateQuote(
+            HttpServletRequest request, @PathVariable UUID attachmentId,
+            @Valid @RequestBody com.localroots.clientfiles.attachment.EstimateQuoteAssignmentService.Request body) {
+        return estimateQuotes.assign(tenantResolver.requireTenantId(request),attachmentId,body);
     }
 
     @PostMapping("/uploads")

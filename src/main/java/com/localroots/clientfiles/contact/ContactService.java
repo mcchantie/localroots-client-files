@@ -28,6 +28,16 @@ public class ContactService {
 
     @Transactional
     public ContactResponse create(UUID tenantId, ContactRequest request) {
+        return createInternal(tenantId,request,false);
+    }
+
+    @Transactional
+    public ContactResponse createFromEstimateQuote(UUID tenantId, ContactRequest request) {
+        if (!hasText(request.firstName())) throw new ApiException(HttpStatus.BAD_REQUEST,"Name is required","Enter the customer's first name.");
+        return createInternal(tenantId,request,true);
+    }
+
+    private ContactResponse createInternal(UUID tenantId, ContactRequest request, boolean allowNameOnly) {
         log.info(
                 "Creating contact namePresent={} phonePresent={} emailPresent={}",
                 hasAnyName(request),
@@ -35,7 +45,7 @@ public class ContactService {
                 hasText(request.email())
         );
 
-        Values values = validateAndNormalize(request);
+        Values values = validateAndNormalize(request,allowNameOnly);
         rejectDuplicates(tenantId, values, null);
 
         ContactEntity entity = ContactEntity.create(
@@ -50,7 +60,10 @@ public class ContactService {
                 values.normalizedEmail(),
                 values.notes()
         );
-        ContactResponse response = ContactResponse.from(repository.save(entity));
+        // Quote assignment inserts its FK mapping through JDBC in this same transaction.
+        // Flush the new contact first so that JDBC can see it; flushing does not commit.
+        ContactResponse response = ContactResponse.from(allowNameOnly
+                ? repository.saveAndFlush(entity) : repository.save(entity));
         log.info(
                 "Contact created contactId={} displayNamePresent={} phonePresent={} emailPresent={}",
                 response.id(),
@@ -72,7 +85,7 @@ public class ContactService {
         );
 
         ContactEntity entity = requireContact(tenantId, contactId);
-        Values values = validateAndNormalize(request);
+        Values values = validateAndNormalize(request,true);
         rejectDuplicates(tenantId, values, entity);
         entity.update(
                 values.firstName(),
@@ -168,13 +181,13 @@ public class ContactService {
                 });
     }
 
-    private Values validateAndNormalize(ContactRequest request) {
+    private Values validateAndNormalize(ContactRequest request, boolean allowNameOnly) {
         String phone = blankToNull(request.phone());
         String email = blankToNull(request.email());
         String normalizedPhone = normalizePhone(phone);
         String normalizedEmail = email == null ? null : email.toLowerCase(Locale.ROOT);
 
-        if (normalizedPhone == null && normalizedEmail == null) {
+        if (normalizedPhone == null && normalizedEmail == null && !(allowNameOnly && hasAnyName(request))) {
             log.warn("Contact validation failed because neither phone nor email was supplied");
             throw new ApiException(
                     HttpStatus.BAD_REQUEST,

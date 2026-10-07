@@ -56,10 +56,12 @@ public class ContactController {
     public PageResponse<ContactResponse> list(
             HttpServletRequest request,
             @RequestParam(required = false) String search,
+            @RequestParam(required = false) String q,
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "50") @Min(1) @Max(100) int size
     ) {
-        return contactService.list(tenantResolver.requireTenantId(request), search, page, size);
+        String term=search==null || search.isBlank()?q:search;
+        return contactService.list(tenantResolver.requireTenantId(request), term, page, size);
     }
 
     @GetMapping("/{contactId}")
