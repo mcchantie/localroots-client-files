@@ -60,7 +60,10 @@ public class ContactService {
                 values.normalizedEmail(),
                 values.notes()
         );
-        ContactResponse response = ContactResponse.from(repository.save(entity));
+        // Quote assignment inserts its FK mapping through JDBC in this same transaction.
+        // Flush the new contact first so that JDBC can see it; flushing does not commit.
+        ContactResponse response = ContactResponse.from(allowNameOnly
+                ? repository.saveAndFlush(entity) : repository.save(entity));
         log.info(
                 "Contact created contactId={} displayNamePresent={} phonePresent={} emailPresent={}",
                 response.id(),
