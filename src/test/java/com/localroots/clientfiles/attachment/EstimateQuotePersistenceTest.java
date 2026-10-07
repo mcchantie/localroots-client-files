@@ -16,6 +16,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import jakarta.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import java.util.*;
+import java.nio.charset.StandardCharsets;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -46,6 +47,16 @@ class EstimateQuotePersistenceTest {
     void exercise(boolean rollback) {
         try(var context=new AnnotationConfigApplicationContext(Config.class)) {
             var db=context.getBean(DataSource.class);var jdbc=new JdbcTemplate(db);
+            // Model the legacy database rule, then apply the production correction.
+            jdbc.execute("alter table contacts add constraint ck_contacts_usable_identifier check (normalized_phone is not null or normalized_email is not null)");
+            var migration=new ClassPathResource("db/migration/V5__allow_named_quote_contacts.sql");
+            String sql;
+            try(var input=migration.getInputStream()) {sql=new String(input.readAllBytes(),StandardCharsets.UTF_8);}
+            catch(java.io.IOException error) {throw new java.io.UncheckedIOException(error);}
+            // NOT VALID is PostgreSQL-only and preserves preexisting legacy rows.
+            for(String statement:sql.replace("NOT VALID", "").split(";")) if(!statement.isBlank()) jdbc.execute(statement);
+            assertThrows(org.springframework.dao.DataIntegrityViolationException.class,()->jdbc.update(
+                "insert into contacts(id,tenant_id,created_at,updated_at,row_version,first_name,last_name,display_name) values(?,?,current_timestamp,current_timestamp,0,' ',' ',' ')",UUID.randomUUID(),UUID.randomUUID()));
             jdbc.execute("create table contact_attachments(id uuid primary key)");
             new ResourceDatabasePopulator(new ClassPathResource("db/migration/V4__estimator_quote_contact_links.sql")).execute(db);
             var tenant=UUID.randomUUID();var id=UUID.randomUUID();var estimate=UUID.randomUUID();
