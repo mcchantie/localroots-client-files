@@ -49,4 +49,9 @@ class EstimateQuoteAssignmentTest {
         assertThrows(ApiException.class,()->service.assign(tenant,id,request()));
         verifyNoInteractions(contacts,jdbc);
     }
+    @Test void assignedContactReceivesSubmittedContactMethodAndKeepsOtherDetails() {
+        when(repo.lockForEstimateQuote(id,tenant)).thenReturn(Optional.of(attachment(contact)));prior(List.of());when(contacts.get(tenant,contact)).thenReturn(response());
+        service.assign(tenant,id,new EstimateQuoteAssignmentService.Request(estimate,"Testing","Testing","7135550123",null));
+        verify(contacts).update(tenant,contact,new ContactRequest("Testing","Testing","Testing Testing","7135550123","old@test.com","Keep these notes"));
+    }
 }

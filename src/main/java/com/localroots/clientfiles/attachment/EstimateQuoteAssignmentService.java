@@ -39,7 +39,9 @@ public class EstimateQuoteAssignmentService {
                 request.phone(),request.email(),"Created from a formal quote request for estimate "+request.estimateId())).id();
         } else {
             var existing=contacts.get(tenantId,contactId);
-            contacts.update(tenantId,contactId,new ContactRequest(first,last,display,existing.phone(),existing.email(),existing.notes()));
+            contacts.update(tenantId,contactId,new ContactRequest(first,last,display,
+                request.phone()==null || request.phone().isBlank()?existing.phone():request.phone(),
+                request.email()==null || request.email().isBlank()?existing.email():request.email(),existing.notes()));
         }
         attachment.assignContact(contactId);
         jdbc.update("insert into estimator_quote_contact_links(tenant_id,attachment_id,estimate_id,contact_id) values(?,?,?,?)",
