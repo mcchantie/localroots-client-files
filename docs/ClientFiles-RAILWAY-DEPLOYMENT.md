@@ -31,20 +31,17 @@ curl -s http://localhost:8080/api/v1/auth/login \
 
 ## 2. Generate stable production values
 
-Create one tenant UUID and keep it permanently for the Texas Top Dressing production tenant:
+Use the existing Texas Top Dressing tenant UUID from the CRM database for `CLIENT_FILES_TENANT_ID`. Do not generate a replacement tenant for an existing business.
+
+Accounts and BCrypt password hashes live only in the CRM `app_users` table. Sign in with a CRM email and password; no separate Client Files administrator password is configured. Use the existing shared database connection, not an empty new database.
+
+Generate the JWT signing secret:
 
 ```bash
-uuidgen | tr '[:upper:]' '[:lower:]'
-```
-
-Generate the admin password and JWT signing secret:
-
-```bash
-openssl rand -base64 36
 openssl rand -base64 32
 ```
 
-The first value is `CLIENT_FILES_ADMIN_PASSWORD`. The second is `CLIENT_FILES_JWT_SECRET_BASE64`.
+Set the result as `CLIENT_FILES_JWT_SECRET_BASE64`.
 
 ## 3. Commit and push
 
@@ -59,7 +56,7 @@ Railway uses the root `Dockerfile` and `railway.toml`.
 ## 4. Add Railway PostgreSQL
 
 1. Create or open the Railway project.
-2. Add a PostgreSQL service.
+2. Use the existing CRM PostgreSQL service containing `app_users`, tenants, contacts, and attachments.
 3. Open the Client Files application service.
 4. Add PostgreSQL reference variables using the actual database service name:
 
@@ -77,8 +74,6 @@ Use `deploy/railway-environment.example` as the checklist. Required values inclu
 
 ```text
 SPRING_PROFILES_ACTIVE=production
-CLIENT_FILES_ADMIN_USERNAME=crystal
-CLIENT_FILES_ADMIN_PASSWORD=<long random password>
 CLIENT_FILES_TENANT_ID=<stable UUID>
 CLIENT_FILES_JWT_SECRET_BASE64=<openssl rand -base64 32 output>
 CLIENT_FILES_JWT_ISSUER=client-files-api
@@ -182,3 +177,4 @@ Deferred:
 ## 11. Rollback
 
 Railway deployment history can restore the previous application image. Do not drop the production tables after files have been uploaded because the rows are required to locate and authorize access to the private S3 objects.
+

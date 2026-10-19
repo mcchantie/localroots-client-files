@@ -36,8 +36,6 @@ storage:
 
 client-files:
   auth:
-    admin-username: test-admin
-    admin-password: test-password-only
     tenant-id: 11111111-1111-1111-1111-111111111111
     jwt-secret-base64: bG9jYWwtZGV2ZWxvcG1lbnQtand0LXNlY3JldC1vbmx5LTMyaA==
     jwt-issuer: client-files-api-test
@@ -59,3 +57,4 @@ management:
   endpoint:
     health:
       show-details: never
+

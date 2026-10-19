@@ -137,10 +137,6 @@ public class SecurityConfig {
                 return;
             }
 
-            requireText(auth.getAdminUsername(), "CLIENT_FILES_ADMIN_USERNAME must be configured in production.");
-            if (auth.getAdminPassword() == null || auth.getAdminPassword().length() < 16) {
-                throw new IllegalStateException("CLIENT_FILES_ADMIN_PASSWORD must be at least 16 characters in production.");
-            }
             requireText(auth.getTenantId(), "CLIENT_FILES_TENANT_ID must be configured in production.");
             try {
                 UUID.fromString(auth.getTenantId().trim());
@@ -176,3 +172,4 @@ public class SecurityConfig {
         }
     }
 }
+

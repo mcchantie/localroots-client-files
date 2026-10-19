@@ -20,4 +20,5 @@ jobs:
       - name: Build backend
         run: ./mvnw --batch-mode --no-transfer-progress -DskipTests package
       - name: Test attachment behavior
-        run: ./mvnw --batch-mode --no-transfer-progress -Dtest=AttachmentRenameTest,AttachmentControllerTest,AttachmentPermanentDeleteTest test
+        run: ./mvnw --batch-mode --no-transfer-progress -Dtest=AuthServiceTest,AttachmentRenameTest,AttachmentControllerTest,AttachmentPermanentDeleteTest,EstimatorIntegrationSecurityTest test
+

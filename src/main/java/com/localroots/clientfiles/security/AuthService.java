@@ -3,99 +3,71 @@ package com.localroots.clientfiles.security;
 import com.localroots.clientfiles.common.ApiException;
 import com.localroots.clientfiles.tenant.TenantEntity;
 import com.localroots.clientfiles.tenant.TenantService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
+import java.util.Locale;
 import java.util.UUID;
 
+/** Uses the same persisted email and BCrypt hash as CRM. No separate file-app account. */
 @Service
 public class AuthService {
-
-    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
-
-    private final AuthenticationProperties properties;
+    private final JdbcTemplate identities;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final TenantService tenantService;
-    private final String encodedPassword;
+    private final String dummyHash;
     private final UUID tenantId;
 
-    public AuthService(
-            AuthenticationProperties properties,
-            PasswordEncoder passwordEncoder,
-            JwtService jwtService,
-            TenantService tenantService
-    ) {
-        this.properties = properties;
+    public AuthService(AuthenticationProperties properties, PasswordEncoder passwordEncoder,
+                       JwtService jwtService, TenantService tenantService, JdbcTemplate identities) {
+        this.identities = identities;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.tenantService = tenantService;
-        this.encodedPassword = passwordEncoder.encode(properties.getAdminPassword() == null ? "" : properties.getAdminPassword());
-        this.tenantId = parseTenantId(properties.getTenantId());
-    }
-
-    public LoginResult login(String username, String password) {
-        String attemptedUsername = username == null ? "-" : username.trim();
-        log.info("Authentication attempt username={}", attemptedUsername);
-        boolean usernameValid = usernameMatches(username);
-        boolean passwordValid = passwordEncoder.matches(password, encodedPassword);
-        if (!usernameValid || !passwordValid) {
-            log.warn("Authentication failed username={} usernameMatched={}", attemptedUsername, usernameValid);
-            throw new ApiException(
-                    HttpStatus.UNAUTHORIZED,
-                    "Invalid credentials",
-                    "The username or password is incorrect."
-            );
-        }
-
-        TenantEntity tenant = tenantService.requireTenant(tenantId);
-        JwtService.IssuedToken token = jwtService.issue(properties.getAdminUsername().trim(), tenantId);
-        log.info(
-                "Authentication succeeded username={} tenantId={} tokenExpiresAt={}",
-                properties.getAdminUsername().trim(),
-                tenantId,
-                token.expiresAt()
-        );
-        return new LoginResult(
-                token.value(),
-                token.expiresAt(),
-                properties.getAdminUsername().trim(),
-                tenantId,
-                tenant.getName()
-        );
-    }
-
-    private boolean usernameMatches(String suppliedUsername) {
-        if (suppliedUsername == null || properties.getAdminUsername() == null) {
-            return false;
-        }
-        byte[] supplied = suppliedUsername.trim().getBytes(StandardCharsets.UTF_8);
-        byte[] expected = properties.getAdminUsername().trim().getBytes(StandardCharsets.UTF_8);
-        return MessageDigest.isEqual(supplied, expected);
-    }
-
-    private UUID parseTenantId(String value) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalStateException("CLIENT_FILES_TENANT_ID must be configured with an existing Local Roots tenant UUID.");
-        }
+        this.dummyHash = passwordEncoder.encode("unused-dummy-password");
         try {
-            return UUID.fromString(value.trim());
-        } catch (IllegalArgumentException exception) {
-            throw new IllegalStateException("CLIENT_FILES_TENANT_ID must be a valid UUID.", exception);
+            this.tenantId = UUID.fromString(properties.getTenantId().trim());
+        } catch (IllegalArgumentException | NullPointerException exception) {
+            throw new IllegalStateException("CLIENT_FILES_TENANT_ID must be an existing Local Roots tenant UUID.", exception);
         }
     }
 
-    public record LoginResult(
-            String accessToken,
-            java.time.Instant expiresAt,
-            String username,
-            UUID tenantId,
-            String tenantName
-    ) {
+    @Transactional(readOnly = true)
+    public LoginResult login(String email, String password) {
+        String normalized = email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
+        Account account;
+        try {
+            account = identities.query("""
+                    SELECT email, password_hash, active, role, tenant_id FROM app_users
+                    WHERE lower(email) = ?
+                    """, (rs, row) -> new Account(rs.getString("email"), rs.getString("password_hash"),
+                    rs.getBoolean("active"), rs.getString("role"), rs.getString("tenant_id")),
+                    normalized).stream().findFirst().orElse(null);
+        } catch (DataAccessException exception) {
+            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "Sign-in unavailable", "Shared Local Roots sign-in is unavailable.");
+        }
+        String hash = account == null ? dummyHash : account.passwordHash();
+        boolean valid = password != null && password.length() <= 1024 && passwordEncoder.matches(password, hash);
+        if (!valid || account == null || !account.active()) {
+            throw new ApiException(HttpStatus.UNAUTHORIZED, "Invalid credentials", "The email or password is incorrect.");
+        }
+        if (!"ADMIN".equals(account.role()) && !("TENANT_USER".equals(account.role())
+                && tenantId.toString().equals(account.tenantId()))) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "Access denied", "This account cannot access this business.");
+        }
+        TenantEntity tenant = tenantService.requireTenant(tenantId);
+        String canonicalEmail = account.email();
+        JwtService.IssuedToken token = jwtService.issue(canonicalEmail, tenantId, account.role());
+        return new LoginResult(token.value(), token.expiresAt(), canonicalEmail, tenantId, tenant.getName());
     }
+
+    private record Account(String email, String passwordHash, boolean active, String role, String tenantId) {}
+
+    public record LoginResult(String accessToken, java.time.Instant expiresAt, String username,
+                              UUID tenantId, String tenantName) {}
 }
