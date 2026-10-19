@@ -27,7 +27,7 @@ public class JwtService {
         this.clock = clock;
     }
 
-    public IssuedToken issue(String username, UUID tenantId) {
+    public IssuedToken issue(String username, UUID tenantId, String role) {
         Instant issuedAt = clock.instant();
         Instant expiresAt = issuedAt.plus(properties.getAccessTokenTtl());
 
@@ -37,7 +37,7 @@ public class JwtService {
                 .expiresAt(expiresAt)
                 .subject(username)
                 .claim(TENANT_ID_CLAIM, tenantId.toString())
-                .claim("roles", List.of("ADMIN"))
+                .claim("roles", List.of(role))
                 .build();
 
         JwsHeader header = JwsHeader.with(MacAlgorithm.HS256)

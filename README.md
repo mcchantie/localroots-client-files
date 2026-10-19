@@ -18,6 +18,14 @@ The standard local defaults are:
 
 Run the backend with the `local` Spring profile and the UI on port 5183.
 
+## Shared Local Roots sign-in
+
+Sign in with your existing **CRM email and password**. Client Files now reads the same `app_users` record and BCrypt password hash through its existing `CRM_DB_URL`, `CRM_DB_USER`, and `CRM_DB_PASSWORD` connection. The CRM HTTP service does not need to be running; the database must be available. No schema migration or duplicate account is needed.
+
+`CLIENT_FILES_ADMIN_USERNAME` and `CLIENT_FILES_ADMIN_PASSWORD` are no longer used. Keep the existing tenant UUID, JWT signing secret/issuer, CORS, and storage settings. `CLIENT_FILES_TENANT_ID` must identify the business in that database. Active users assigned to that tenant and CRM administrators can sign in. A password change or account deactivation in CRM applies at the next sign-in; already issued tokens remain valid until expiry or signing-key rotation. The JSON login request still uses the `username` field for compatibility, but its value is the CRM email address. The UI labels it Email.
+
+This is one stored identity, with separate app sessions for now. A future login portal should authenticate through a dedicated authentication service and provide SSO to all apps; the account table can move out of the CRM database at that point.
+
 ## Railway Storage Bucket
 
 Create a Bucket in the same Railway environment as the Client Files API. In the
@@ -63,3 +71,4 @@ and returns it in attachment responses. To edit a name later, send
 characters, and on one line. Renaming changes the display name and generated
 download filename, not the original filename or S3 key. The frontend can
 suggest friendly names before upload, then send the chosen name to the API.
+

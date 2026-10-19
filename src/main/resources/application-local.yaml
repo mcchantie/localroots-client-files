@@ -1,7 +1,5 @@
 client-files:
   auth:
-    admin-username: ${CLIENT_FILES_ADMIN_USERNAME:admin}
-    admin-password: ${CLIENT_FILES_ADMIN_PASSWORD:local}
     tenant-id: ${CLIENT_FILES_TENANT_ID}
   cors:
     allowed-origins: ${CLIENT_FILES_ALLOWED_ORIGINS:http://localhost:5183}
