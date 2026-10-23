@@ -60,9 +60,8 @@ unset.
 `QUOTES` is accepted for document and image uploads (PDF, text, or screenshots).
 `LANDGLIDE` is removed; the migration recategorizes any old metadata rows as
 `PROPERTY_PHOTOS` without touching stored objects. The PostgreSQL category check must accept
-`QUOTES` before the new backend is deployed. Because Flyway is disabled, apply
-`src/main/resources/db/migration/V3__add_quotes_attachment_category.sql`
-manually to each database after reviewing it.
+`QUOTES` before the new backend is deployed. The automatic Client Files V100 reconciliation applies this category update on
+startup. Do not rerun the old manual V3 script.
 
 The upload initializer already accepts an optional `displayName` in the request
 and returns it in attachment responses. To edit a name later, send
@@ -86,3 +85,11 @@ only with the CRM backend) and `CLIENT_FILES_CRM_TENANT_ID` (defaults to
 READY, undeleted file belongs to that contact and configured tenant. It returns no
 storage URLs or file contents. Deploy this endpoint before the corresponding CRM
 change. Existing Client Files user-facing APIs and file storage are unchanged.
+
+## Automatic Flyway migrations
+
+Flyway is now enabled for local and deployed profiles, using the dedicated
+`client_files_flyway_schema_history` table and `db/client-files-migration` location.
+Existing databases are baselined at 99 and reconciled by V100; legacy manual V1-V5
+remain untouched. See [migration adoption](src/main/resources/db/client-files-migration/README.md).
+Do not reuse CRM's Flyway history. Restart Client Files to apply migrations after deployment.

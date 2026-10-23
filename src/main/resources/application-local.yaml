@@ -9,12 +9,10 @@ client-files:
     allow-unverified-estimate-ids: false
 
 spring:
-  # Local migrations remain explicit. Apply the reviewed V1 SQL manually to AWS RDS.
-  flyway:
-    enabled: false
+  # Flyway configuration is inherited from application.yaml.
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: validate
     show-sql: false
     properties:
       hibernate:

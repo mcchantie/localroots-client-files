@@ -32,12 +32,20 @@ spring:
     driver-class-name: org.postgresql.Driver
     embedded-database-connection: none
   flyway:
-    enabled: false
+    enabled: ${CLIENT_FILES_FLYWAY_ENABLED:true}
+    # Independent history: CRM uses public.flyway_schema_history in the same DB.
+    table: client_files_flyway_schema_history
+    default-schema: public
+    locations: classpath:db/client-files-migration
+    baseline-on-migrate: true
+    baseline-version: 99
+    validate-on-migrate: true
+    clean-disabled: true
   jpa:
     open-in-view: false
     generate-ddl: false
     hibernate:
-      ddl-auto: none
+      ddl-auto: validate
     properties:
       hibernate:
         jdbc:
