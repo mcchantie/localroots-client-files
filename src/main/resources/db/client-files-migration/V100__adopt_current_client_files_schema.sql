@@ -113,6 +113,10 @@ CREATE TABLE IF NOT EXISTS contact_attachments (
 -- phone-only and email-only contacts, so names become nullable.
 ALTER TABLE contacts ALTER COLUMN first_name DROP NOT NULL;
 ALTER TABLE contacts ALTER COLUMN last_name DROP NOT NULL;
+-- Existing manually applied schemas already have a trigger on email. PostgreSQL
+-- blocks ALTER TYPE even for the same type while that trigger exists. It is
+-- recreated below; Flyway rolls back the whole migration on any failure.
+DROP TRIGGER IF EXISTS trg_contacts_normalize_identifiers ON contacts;
 ALTER TABLE contacts ALTER COLUMN email TYPE VARCHAR(320);
 
 -- Defaults let Client Files insert a shared CRM contact without mapping every workflow field.
