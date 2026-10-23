@@ -178,3 +178,12 @@ Deferred:
 
 Railway deployment history can restore the previous application image. Do not drop the production tables after files have been uploaded because the rows are required to locate and authorize access to the private S3 objects.
 
+
+## Automatic migration adoption
+
+Client Files now enables Flyway at startup and validates JPA mappings afterward.
+It uses `public.client_files_flyway_schema_history` rather than CRM's migration history.
+See `src/main/resources/db/client-files-migration/README.md` for first rollout steps.
+Remove old `SPRING_FLYWAY_ENABLED=false` overrides (and any old
+`CLIENT_FILES_FLYWAY_ENABLED=false`) from the deployment environment. The application
+role needs permission to create/alter the shared tables and its own history table.

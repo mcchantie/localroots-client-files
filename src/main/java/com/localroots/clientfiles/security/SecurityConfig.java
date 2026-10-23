@@ -80,6 +80,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // This narrow read authenticates its tenant-scoped CRM service key in the controller.
+                        .requestMatchers(HttpMethod.GET, "/api/internal/crm/contacts/*/files/*").permitAll()
                         // This single internal operation authenticates the service key in its controller.
                         .requestMatchers(HttpMethod.POST, "/api/internal/estimator/attachments/*/quote-request").permitAll()
                         .requestMatchers(
