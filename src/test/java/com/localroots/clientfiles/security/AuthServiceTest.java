@@ -58,4 +58,25 @@ class AuthServiceTest {
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE, assertThrows(ApiException.class, () -> auth.login("crystal@example.com", "shared password")).getStatus());
         verify(tokens, never()).issue(any(), any(), any());
     }
+
+    @Test void separateFileDatabaseReadsOnlyTheConfiguredIdentityStore() {
+        var identities = new DriverManagerDataSource("jdbc:h2:mem:separate-identities-" + UUID.randomUUID() + ";DB_CLOSE_DELAY=-1", "sa", "");
+        var identityDb = new JdbcTemplate(identities);
+        identityDb.execute("CREATE TABLE app_users(email VARCHAR(255), password_hash TEXT, role VARCHAR(30), active BOOLEAN, tenant_id UUID)");
+        identityDb.update("INSERT INTO app_users VALUES (?, ?, 'TENANT_USER', true, ?)", "crystal@example.com", passwords.encode("identity password"), tenantId);
+        var properties = new AuthenticationProperties();
+        properties.setTenantId(tenantId.toString()); properties.setIdentityDatabaseUrl(identities.getUrl());
+        properties.setIdentityDatabaseUsername("sa"); properties.setIdentityDatabasePassword("");
+        var tenant = mock(TenantEntity.class); when(tenant.getName()).thenReturn("Development");
+        var tenants = mock(TenantService.class); when(tenants.requireTenant(tenantId)).thenReturn(tenant);
+        var separate = new AuthService(properties, passwords, tokens, tenants, db);
+        assertEquals("test-token", separate.login("crystal@example.com", "identity password").accessToken());
+        // The file database contains a different hash; it must never win or act as fallback.
+        assertEquals(HttpStatus.UNAUTHORIZED, assertThrows(ApiException.class,
+                () -> separate.login("crystal@example.com", "shared password")).getStatus());
+        identityDb.execute("DROP TABLE app_users");
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, assertThrows(ApiException.class,
+                () -> separate.login("crystal@example.com", "shared password")).getStatus());
+    }
 }
+
