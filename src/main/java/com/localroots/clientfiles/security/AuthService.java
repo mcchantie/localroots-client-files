@@ -25,7 +25,11 @@ public class AuthService {
 
     public AuthService(AuthenticationProperties properties, PasswordEncoder passwordEncoder,
                        JwtService jwtService, TenantService tenantService, JdbcTemplate identities) {
-        this.identities = identities;
+        String identityUrl = properties.getIdentityDatabaseUrl();
+        this.identities = identityUrl == null || identityUrl.isBlank() ? identities
+                : new JdbcTemplate(new org.springframework.jdbc.datasource.DriverManagerDataSource(
+                        identityUrl, properties.getIdentityDatabaseUsername(), properties.getIdentityDatabasePassword()));
+        this.identities.setQueryTimeout(10);
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.tenantService = tenantService;
@@ -71,3 +75,4 @@ public class AuthService {
     public record LoginResult(String accessToken, java.time.Instant expiresAt, String username,
                               UUID tenantId, String tenantName) {}
 }
+

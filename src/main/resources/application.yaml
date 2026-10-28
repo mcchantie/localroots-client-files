@@ -1,5 +1,8 @@
 client-files:
   auth:
+    identity-database-url: ${IDENTITY_DB_URL:}
+    identity-database-username: ${IDENTITY_DB_USER:}
+    identity-database-password: ${IDENTITY_DB_PASSWORD:}
     jwt-secret-base64: ${CLIENT_FILES_JWT_SECRET_BASE64}
     jwt-issuer: ${CLIENT_FILES_JWT_ISSUER:client-files-api}
     access-token-ttl: ${CLIENT_FILES_ACCESS_TOKEN_TTL:8h}
@@ -26,9 +29,9 @@ spring:
   config:
     import: optional:classpath:application-logging.yaml
   datasource:
-    url: ${CRM_DB_URL}
-    username: ${CRM_DB_USER}
-    password: ${CRM_DB_PASSWORD}
+    url: ${CLIENT_FILES_DB_URL:${CRM_DB_URL}}
+    username: ${CLIENT_FILES_DB_USER:${CRM_DB_USER}}
+    password: ${CLIENT_FILES_DB_PASSWORD:${CRM_DB_PASSWORD}}
     driver-class-name: org.postgresql.Driver
     embedded-database-connection: none
   flyway:
@@ -81,4 +84,5 @@ management:
   endpoint:
     health:
       show-details: never
+
 

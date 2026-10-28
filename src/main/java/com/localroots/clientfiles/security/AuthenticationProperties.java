@@ -7,6 +7,15 @@ import java.time.Duration;
 @ConfigurationProperties(prefix = "client-files.auth")
 public class AuthenticationProperties {
 
+    private String identityDatabaseUrl;
+    private String identityDatabaseUsername;
+    private String identityDatabasePassword;
+    public String getIdentityDatabaseUrl() { return identityDatabaseUrl; }
+    public void setIdentityDatabaseUrl(String value) { identityDatabaseUrl = value; }
+    public String getIdentityDatabaseUsername() { return identityDatabaseUsername; }
+    public void setIdentityDatabaseUsername(String value) { identityDatabaseUsername = value; }
+    public String getIdentityDatabasePassword() { return identityDatabasePassword; }
+    public void setIdentityDatabasePassword(String value) { identityDatabasePassword = value; }
     private String tenantId;
     private String jwtSecretBase64;
     private String jwtIssuer = "client-files-api";
@@ -44,4 +53,5 @@ public class AuthenticationProperties {
         this.accessTokenTtl = accessTokenTtl;
     }
 }
+
 
